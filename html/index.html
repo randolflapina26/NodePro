@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css" />
+    <title>Socket.IO chat</title>
+    <style>
+      *{
+        padding: 0;
+        margin: 0;
+      }
+      .main-container {
+        width: 90%;
+        height: 100vh;
+        display:flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 0 auto;
+      }
+      .containerr {
+        height: 434px;
+        margin: auto auto;
+        margin: 0 7px;
+        border: 1px solid #333;
+        padding: 3px 10px;
+        border-radius: 3px;
+      }
+      
+      .a1 {
+        width: 79.9%
+      }
+      .a2{
+        width: 19.9%
+      }
+
+      li {
+        background-color:rgb(240, 240, 240);
+        margin: 10px 3px;
+      }
+
+      #input {
+        width: 80%;
+      }
+
+      .mssgs {
+        height: 385px;
+        overflow-y: scroll;
+      }
+      .chat-ul li span {
+        background: rgb(1,190,254);
+        color: #fff;
+        padding: 8px;
+        border-radius: 20PX;
+      }
+      
+
+    </style>
+  </head>
+  <body>
+    <div class="main-container">
+      <div class="containerr a1">
+
+        <div id="messagesID" class="mssgs">
+          <ul id="messages" class='chat-ul'>
+          
+          </ul>
+          
+        </div>
+        <form id="form" action="">
+          <input class="input is-primary" type="text" placeholder="Input Text" id="input" autocomplete="off">&nbsp;&nbsp;<button class="button is-primary">Send</button>&nbsp;<button class="button is-primary">Upload</button>
+        </form>
+
+      </div>
+
+      <div class="containerr a2">
+
+        <div id="messagesID" class="mssgs">
+          <ul id="users"></ul>
+        </div>
+      
+
+      </div>
+
+    </div>   
+    
+  </body>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let socket = io();
+    let names = [];
+    let name = prompt("Please enter your name");
+    let counter = 1
+
+    if(counter === 1) {
+      console.log(counter, '-counter');
+      socket.emit('new user', name);
+      counter++;
+    }
+
+    names.push(name);
+  
+    let messages = document.getElementById('messages');
+    let user = document.getElementById('users');
+    let form = document.getElementById('form');
+    let input = document.getElementById('input');
+  
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', input.value, name);
+        input.value = '';
+      }
+    });
+  
+    socket.on('chat message', function(msg, name1) {
+      let item = document.createElement('li');
+      let span = document.createElement('span')
+
+      item.className = name1
+      span.className = name1 + "-span"
+      console.log(name, name1);
+      if(name === name1) {
+        span.textContent = msg;
+      } else {
+        span.textContent = name1 + ": " + msg;
+      }
+
+      item.appendChild(span);
+
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+      updateScroll();
+    });
+
+    socket.on('new user', function(name1) {
+      names.push(name1);
+      names = [...new Set(names)]
+
+      let usersString = ''
+      names.map(e => {
+        
+        usersString += `
+        <li>${e}</li>
+        `
+      })
+
+      console.log(usersString)
+      document.getElementById('users').innerHTML = usersString;
+
+    })
+
+    function updateScroll(){ 
+      let classNames = document.querySelectorAll(`.${name}`)
+
+      classNames.forEach((e) => {
+        e.style.textAlign = 'right'       
+      })
+
+      let element = document.getElementById("messagesID"); 
+      element.scrollTop = element.scrollHeight; 
+    }
+  </script>
+</html>
